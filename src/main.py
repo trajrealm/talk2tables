@@ -15,14 +15,14 @@ def main():
     # vectordb = create_vectorstore_from_docs(docs)
     chain = get_qa_chain(vectordb)
 
-    question = "How many distinct securities are there in tm1 for which scores are available?"
+    question = "How many distinct securities are there in eatm1 for which scores are available?"
     result = run_query(chain, question)
 
     print("Generated SQL:\n", result["result"])
 
-    validation = validate_sql_against_schema(result["result"], json.load(open("public_schema.json")))
-    if not validation["is_valid"]:
-        print("⚠️ Invalid SQL! Check:", validation["invalid_tables_or_columns"])
+    # validation = validate_sql_against_schema(result["result"], json.load(open("public_schema.json")))
+    # if not validation["is_valid"]:
+    #     print("⚠️ Invalid SQL! Check:", validation["invalid_tables_or_columns"])
 
 if __name__ == "__main__":
     main()
