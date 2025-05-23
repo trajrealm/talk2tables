@@ -1,0 +1,9 @@
+.vscode
+venv
+**/__pycache__
+**/tmp
+**/*schema.json
+**/*db
+**/.env
+**/*config*
+!**/*.example
