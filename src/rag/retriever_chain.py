@@ -2,27 +2,26 @@ from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
+
 def get_qa_chain(vectorstore, model_name="gpt-4o-mini"):
-    prompt_template = """You are an expert SQL assistant. Given a user's question and the database schema below, generate a valid SQL query.
+    prompt_template = """
+    You are a SQL assistant that generates SQL based on the user's question and the schema below.
 
-⚠️ IMPORTANT:
-- ONLY use tables and columns shown in the schema.
-- NEVER make up table or column names.
-- If the required table or column is not in the schema, say "I can't find a match in the schema."
+    You can also answer metadata questions about the schema itself using standard SQL patterns, such as:
+    - Listing tables: SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
+    - Counting tables: SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';
+    - Listing columns: SELECT column_name FROM information_schema.columns WHERE table_name = 'your_table';
 
----
+    ---
 
-SCHEMA:
-{context}
+    SCHEMA:
+    {context}
 
----
+    QUESTION:
+    {question}
 
-QUESTION:
-{question}
-
----
-
-SQL:"""
+    SQL:
+    """
 
     prompt = PromptTemplate.from_template(prompt_template)
 
