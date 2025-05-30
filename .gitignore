@@ -8,3 +8,4 @@ venv
 **/*config*
 !**/*.example
 **/.DS_Store
+**/.gradio

@@ -1,13 +1,14 @@
 import gradio as gr
-import json
-from rag.schema_loader import load_schema_json, flatten_schema, load_schema_with_tags
-from rag.embedder import create_vectorstore_from_text, create_vectorstore_from_docs
+from rag.schema_loader import load_schema_json, flatten_schema
+from rag.embedder import create_vectorstore_from_text
 from rag.retriever_chain import get_qa_chain
 from rag.query_runner import run_query
 from rag.load_api_key import load_api_key
-from sql_validator import validate_sql_against_schema
 import re
 from db_executor import execute_sql
+from rag.llm_ambiguity_checker import check_ambiguity
+from rag.schema_loader import flatten_schema
+
 
 
 def strip_sql_markdown(text: str) -> str:
@@ -17,29 +18,32 @@ def strip_sql_markdown(text: str) -> str:
 def chat_with_sql_bot(message, history):
     load_api_key()
     schema = load_schema_json("public_schema.json")
-    flat_text = flatten_schema(schema)
-    # docs = load_schema_with_tags(schema)
+    schema_text = flatten_schema(schema)
+
+    ambiguity = check_ambiguity(message, schema_text)
+
+    if ambiguity.get("ambiguous"):
+        clarify_items = ambiguity.get("clarify", [])
+        clarification_msg = "⚠️ Ambiguity detected in your question:\n\n"
+
+        for item in clarify_items:
+            if isinstance(item, dict):
+                for term, matches in item.items():
+                    clarification_msg += f"**{term}** could refer to: {', '.join(matches)}\n"
+            elif isinstance(item, str):
+                clarification_msg += f"- {item}\n"
+
+        clarification_msg += "\nPlease rephrase your query or specify the exact table/column."
+
+        return clarification_msg
+
+    flat_text = schema_text
     vectordb = create_vectorstore_from_text(flat_text)
-    # vectordb = create_vectorstore_from_docs(docs)
     chain = get_qa_chain(vectordb)
-
     generated_sql = run_query(chain, message)
-
     clean_sql = strip_sql_markdown(generated_sql["result"])
 
     print("Generated SQL:\n", clean_sql)
-
-    # validation = validate_sql_against_schema(generated_sql, schema)
-
- 
-    # valid = validation["is_valid"]
-    # invalid_parts = validation["invalid_tables_or_columns"]
-
-    # # Feedback
-    # if valid:
-    #     feedback = "✅ SQL is valid and conforms to schema."
-    # else:
-    #     feedback = f"❌ SQL contains invalid references: {', '.join(invalid_parts)}"
 
     columns, rows = execute_sql(clean_sql)
 

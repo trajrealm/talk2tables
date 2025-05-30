@@ -11,6 +11,8 @@ def get_qa_chain(vectorstore, model_name="gpt-4o-mini"):
     - Listing tables: SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
     - Counting tables: SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';
     - Listing columns: SELECT column_name FROM information_schema.columns WHERE table_name = 'your_table';
+    
+    Output ONLY the SQL — no commentary, no additional explanation.
 
     ---
 
