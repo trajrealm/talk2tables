@@ -18,24 +18,3 @@ def flatten_schema(schema: dict) -> str:
             text += line + "\n"
         text += "\n"
     return text
-
-def load_schema_with_tags(schema_json):
-    docs = []
-    for table in schema_json['tables']:
-        table_metadata = {
-            "table": table["name"],
-            "tags": table.get("tags", []),
-            "schema": schema_json["schema"]
-        }
-
-        table_text = f"Table: {table['name']}\n{table.get('description', '')}\n"
-        for col in table["columns"]:
-            line = f"  - {col['name']} ({col['type']})"
-            if "semantic_type" in col:
-                line += f" [semantic_type: {col['semantic_type']}]"
-            if "tags" in col:
-                line += f" [tags: {', '.join(col['tags'])}]"
-            table_text += line + "\n"
-
-        docs.append(Document(page_content=table_text, metadata=table_metadata))
-    return docs

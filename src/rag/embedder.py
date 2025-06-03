@@ -30,9 +30,3 @@ def create_vectorstore_from_text(text: str, persist_dir: str = "./chroma_db"):
     vectordb = Chroma.from_documents(docs, embeddings, persist_directory=persist_dir)
     vectordb = add_info_schema(vectordb)
     return vectordb
-
-def create_vectorstore_from_docs(docs, persist_dir: str = "./chroma_db"):
-    embeddings = OpenAIEmbeddings()
-    vectordb = Chroma.from_documents(docs, embeddings, persist_directory=persist_dir)
-    vectordb = add_info_schema(vectordb)
-    return vectordb

@@ -9,3 +9,6 @@ venv
 !**/*.example
 **/.DS_Store
 **/.gradio
+src/static/plots/*
+!**/*.example
+test/*
