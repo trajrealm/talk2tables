@@ -1,28 +1,42 @@
-from rag.schema_loader import load_schema_json, flatten_schema, load_schema_with_tags
-from rag.embedder import create_vectorstore_from_text, create_vectorstore_from_docs
-from rag.retriever_chain import get_qa_chain
-from rag.query_runner import run_query
-from rag.load_api_key import load_api_key
-from sql_validator import validate_sql_against_schema
-import json
+from src.utils.schema_json_util import load_schema
+from src.data_access.vectorestore_manager import create_vectorstore_from_text
+from src.data_access.vectorstore_singleton import set_vectorstore
+from src.services.handle_query import handle_query
+from src.utils.load_api_key import load_api_key
+from config.config import SCHEMA_JSON_DIR
 
-def main():
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from pydantic import BaseModel
+import os
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     load_api_key()
-    schema = load_schema_json("public_schema.json")
-    flat_text = flatten_schema(schema)
-    # docs = load_schema_with_tags(schema)
-    vectordb = create_vectorstore_from_text(flat_text)
-    # vectordb = create_vectorstore_from_docs(docs)
-    chain = get_qa_chain(vectordb)
+    schema, schema_text = load_schema()
+    vectorstore = create_vectorstore_from_text(schema_text)
+    set_vectorstore(vectorstore)
+    yield
 
-    question = "How many distinct securities are there in eatm1 for which scores are available?"
-    result = run_query(chain, question)
+app = FastAPI(lifespan=lifespan)
 
-    print("Generated SQL:\n", result["result"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # You can tighten this later
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    # validation = validate_sql_against_schema(result["result"], json.load(open("public_schema.json")))
-    # if not validation["is_valid"]:
-    #     print("⚠️ Invalid SQL! Check:", validation["invalid_tables_or_columns"])
+load_api_key()
+class QueryRequest(BaseModel):
+    query: str
 
-if __name__ == "__main__":
-    main()
+@app.post("/api/query")
+async def query_api(request: QueryRequest):
+    return handle_query(request.query)
+
+
+def get_vectorstore():
+    return vectorstore

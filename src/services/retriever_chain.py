@@ -46,3 +46,5 @@ def get_qa_chain(vectorstore, model_name="gpt-4o-mini"):
     )
 
     return chain
+
+

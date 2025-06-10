@@ -1,3 +1,5 @@
+from config.config import VECTORSTORE_DIR
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
@@ -23,7 +25,7 @@ def add_info_schema(vectordb):
 
 
 
-def create_vectorstore_from_text(text: str, persist_dir: str = "./chroma_db"):
+def create_vectorstore_from_text(text: str, persist_dir: str = VECTORSTORE_DIR):
     splitter = RecursiveCharacterTextSplitter(chunk_size=700, chunk_overlap=100)
     docs = splitter.create_documents([text])
     embeddings = OpenAIEmbeddings()

@@ -59,3 +59,5 @@ def check_ambiguity(user_query: str, schema_text: str) -> dict:
         return json.loads(content)
     except Exception as e:
         return {"ambiguous": False, "error": str(e)}
+
+

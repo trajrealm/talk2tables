@@ -1,5 +1,5 @@
 import psycopg2
-from config import DB_CONN_PARAMS
+from config.config import DB_CONN_PARAMS
 
 def execute_sql(sql: str):
     try:

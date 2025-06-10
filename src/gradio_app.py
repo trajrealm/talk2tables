@@ -1,13 +1,15 @@
+
+from src.utils.schema_json_util import load_schema_json, flatten_schema
+from src.data_access.vectorestore_manager import create_vectorstore_from_text
+from src.services.retriever_chain import get_qa_chain
+from src.utils.load_api_key import load_api_key
+from src.data_access.db_executor import execute_sql
+from src.services.llm_ambiguity_checker import check_ambiguity
+from src.utils.schema_json_util import flatten_schema
+from src.utils.visualizer import plot_with_plotly
+
 import gradio as gr
-from rag.schema_loader import load_schema_json, flatten_schema
-from rag.embedder import create_vectorstore_from_text
-from rag.retriever_chain import get_qa_chain
-from rag.load_api_key import load_api_key
 import re
-from db_executor import execute_sql
-from rag.llm_ambiguity_checker import check_ambiguity
-from rag.schema_loader import flatten_schema
-from rag.visualizer import plot_with_plotly
 import json
 import traceback
 import os
@@ -48,8 +50,8 @@ def check_for_ambiguity(message: str, schema_text: str) -> str | None:
 def get_llm_generated_query(message: str, vectorstore) -> dict:
     if MOCK_MODE:
         return {
-            "sql": "SELECT date, cam1 FROM cam1_history WHERE ticker = 'AAPL'",
-            "plot": True,
+            "sql": "SELECT date, cam1 FROM cam1_history WHERE ticker = 'AAPL' LIMIT 10",
+            "plot": False,
             "x_axis": "date",
             "y_axis": "cam1",
             "chart_type": "line"
@@ -113,6 +115,8 @@ def chat_with_sql_bot(message, history):
         parsed.get("y_axis", ""),
         parsed.get("chart_type", "bar")
     )
+
+    
 
 
 if __name__ == "__main__":

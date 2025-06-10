@@ -1,9 +1,11 @@
+from config import config as cfg
+
 import psycopg2
 import json
-import config as cfg
 
-SCHEMA_NAME = "public"
-def get_schema_json():
+DEFAULT_SCHEMA_NAME = "public"
+
+def get_schema_json(schema_name=DEFAULT_SCHEMA_NAME):
     conn = psycopg2.connect(**cfg.DB_CONN_PARAMS)
     cur = conn.cursor()
 
@@ -13,7 +15,7 @@ def get_schema_json():
         FROM information_schema.columns
         WHERE table_schema = %s
         ORDER BY table_name, ordinal_position;
-    """, (SCHEMA_NAME,))
+    """, (schema_name,))
     
     tables = {}
     for table_name, column_name, data_type, is_nullable in cur.fetchall():
@@ -34,7 +36,7 @@ def get_schema_json():
             ON tc.constraint_name = kcu.constraint_name
         WHERE tc.constraint_type = 'PRIMARY KEY'
         AND tc.table_schema = %s;
-    """, (SCHEMA_NAME,))
+    """, (schema_name,))
     for table_name, column_name in cur.fetchall():
         for col in tables[table_name]["columns"]:
             if col["name"] == column_name:
@@ -53,7 +55,7 @@ def get_schema_json():
             ON ccu.constraint_name = tc.constraint_name
         WHERE tc.constraint_type = 'FOREIGN KEY'
         AND tc.table_schema = %s;
-    """, (SCHEMA_NAME,))
+    """, (schema_name,))
     
     relationships = []
     for table, column, ref_table, ref_column in cur.fetchall():
@@ -68,7 +70,7 @@ def get_schema_json():
         })
 
     schema_json = {
-        "schema": SCHEMA_NAME,
+        "schema": schema_name,
         "tables": [{"name": name, **info} for name, info in tables.items()],
         "relationships": relationships
     }
@@ -81,6 +83,7 @@ def get_schema_json():
 
 if __name__ == "__main__":
     schema = get_schema_json()
-    with open(f'{SCHEMA_NAME}_schema.json', "w") as f:
+    json_path = f"{cfg.SCHEMA_JSON_DIR}/{DEFAULT_SCHEMA_NAME}_schema.json"
+    with open(f'{DEFAULT_SCHEMA_NAME}_schema.json', "w") as f:
         json.dump(schema, f, indent=2)
-    print(f'{SCHEMA_NAME}_schema.json')
+    print(f'{DEFAULT_SCHEMA_NAME}_schema.json')
