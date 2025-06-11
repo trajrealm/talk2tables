@@ -41,14 +41,14 @@ def check_for_ambiguity(message: str, schema_text: str) -> str | None:
     ambiguity = check_ambiguity(message, schema_text)
     if ambiguity.get("ambiguous"):
         clarify_items = ambiguity.get("clarify", [])
-        clarification_msg = "⚠️ Ambiguity detected in your question:\n\n"
+        clarification_msg = "⚠️ Ambiguity detected in your question:\n"
         for item in clarify_items:
             if isinstance(item, dict):
                 for term, matches in item.items():
-                    clarification_msg += f"**{term}** could refer to: {', '.join(matches)}\n"
+                    clarification_msg += f"**{term}** could refer to: {', '.join(matches) if isinstance(matches, list) else matches}\n"
             elif isinstance(item, str):
                 clarification_msg += f"- {item}\n"
-        clarification_msg += "\nPlease rephrase your query or specify the exact table/column."
+        clarification_msg += "Please rephrase your query or specify the exact table/column."
         return clarification_msg
     return None
 
@@ -57,11 +57,14 @@ def handle_query(nl_query: str):
     try:
         schema, schema_text = load_schema()
 
-        # Step 1: Check for ambiguity
+        # Step 1: Check for ambiguityi
         if not MOCK_MODE:
             ambiguity_msg = check_for_ambiguity(nl_query, schema_text)
             if ambiguity_msg:
-                return ambiguity_msg, None
+                return {
+                    "ambiguity": True,
+                    "ambiguity_msg": ambiguity_msg,
+                }    
 
         try:
             parsed = get_llm_generated_query(nl_query)
@@ -87,12 +90,11 @@ def handle_query(nl_query: str):
         return {
             "sql": clean_sql,
             "ambiguity": False,
-            "plot": True,
             "result": {
                 "columns": columns,
                 "rows": rows,
                 "types": column_types,
-                "plot": True
+                "plot": parsed.get("plot", False)
             }
         }        
 

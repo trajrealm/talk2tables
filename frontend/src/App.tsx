@@ -21,6 +21,7 @@ import {
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import ReactMarkdown from 'react-markdown';
 
 interface QueryResponse {
   sql: string;
@@ -31,6 +32,7 @@ interface QueryResponse {
     plot?: boolean;
   } | null;
   ambiguity?: string | null;
+  ambiguity_msg: string;
   error?: string | null;
 }
 const App = () => {
@@ -42,6 +44,7 @@ const App = () => {
   const [error, setError] = useState('');
   const [ambiguity, setAmbiguity] = useState('');
   const [plot, setPlot] = useState(false);
+  const [ambiguity_msg, setAmbiguityMsg] = useState('');
 
   const handleSubmit = async () => {
     if (!query.trim()) {
@@ -56,6 +59,7 @@ const App = () => {
     setRows([]);
     setAmbiguity('');
     setPlot(false);
+    setAmbiguityMsg('');
 
     try {
       const res = await fetch('http://localhost:7861/api/query', {
@@ -71,10 +75,15 @@ const App = () => {
       const data: QueryResponse = await res.json();
       console.log("data", data)
       console.log("data.result", data.result)      
+      console.log("data.ambiguity", data.ambiguity)
+      console.log("data.ambiguityMsg", data.ambiguity_msg)
 
 
       if (data.ambiguity) {
         setAmbiguity(data.ambiguity);
+        if (data.ambiguity_msg) {
+          setAmbiguityMsg(data.ambiguity_msg);
+        }
         setLoading(false);
         return;
       }
@@ -102,6 +111,9 @@ const App = () => {
       setLoading(false);
     }
   };
+
+  console.log("ambiguity", ambiguity)
+  console.log("ambiguityMsg", ambiguity_msg)
 
   return (
     <>
@@ -135,9 +147,15 @@ const App = () => {
 
         {loading && <CircularProgress sx={{ mt: 2 }} />}
 
-        {ambiguity && (
+        {/* {ambiguity && (
           <Alert severity="warning" sx={{ mt: 2, whiteSpace: 'pre-line' }}>
             {ambiguity}
+          </Alert>
+        )} */}
+
+        {ambiguity_msg && (
+          <Alert severity="error" sx={{ mt: 2, whiteSpace: 'pre-line' }}>
+            <ReactMarkdown>{ambiguity_msg}</ReactMarkdown>
           </Alert>
         )}
 
