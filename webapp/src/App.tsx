@@ -45,6 +45,7 @@ const App = () => {
   const [plot, setPlot] = useState(false);
   const [ambiguity_msg, setAmbiguityMsg] = useState('');
   const [showAllRows, setShowAllRows] = useState(false);
+  const [conversation, setConversation] = useState<{ user: string; bot: string }[]>([]);
 
 
   const handleSubmit = async () => {
@@ -68,7 +69,10 @@ const App = () => {
       const res = await fetch('http://localhost:8000/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ 
+          query,
+          history: conversation,
+        }),
       });
 
       if (!res.ok) {
@@ -76,11 +80,10 @@ const App = () => {
       }
 
       const data: QueryResponse = await res.json();
-      console.log("data", data)
-      console.log("data.result", data.result)      
-      console.log("data.ambiguity", data.ambiguity)
-      console.log("data.ambiguityMsg", data.ambiguity_msg)
-
+      setConversation([
+        ...conversation,
+        { user: query, bot: data.ambiguity_msg || data.sql || data.error || 'No response' },
+      ]);
 
       if (data.ambiguity) {
         setAmbiguity(data.ambiguity);
@@ -115,9 +118,6 @@ const App = () => {
     }
   };
 
-  console.log("ambiguity", ambiguity)
-  console.log("ambiguityMsg", ambiguity_msg)
-
   return (
     <>
 <AppBar position="static" sx={{ backgroundColor: '' }}>
@@ -132,6 +132,48 @@ const App = () => {
  </AppBar>
 
       <Container sx={{ mt: 4, mb: 4 }}>
+        <Box mt={4} sx={{ position: 'relative', mb: 3 }}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '-8px',
+              left: 16,
+              backgroundColor: '#fff',
+              px: 1,
+              fontSize: '0.9rem',
+              color: '#555',
+            }}
+          >
+            Conversation History
+          </Box>
+
+          <Box
+            sx={{
+              maxHeight: 300,
+              overflowY: 'auto',
+              backgroundColor: '#f9f9f9',
+              p: 2,
+              border: '1px solid #ddd',
+              borderRadius: 2,
+            }}
+          >
+            {conversation.map((entry, index) => (
+              <Box key={index} mb={2}>
+                <Typography>
+                  <strong>User:</strong> {entry.user}
+                </Typography>
+                <Typography>
+                  <strong>
+                    <Box component="span" sx={{ color: '#ff9100' }}>
+                      gAIndelf:
+                    </Box>
+                  </strong>{' '}
+                  <Box component="span" sx={{ color: '#00bfa5' }}>{entry.bot}</Box>
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
         <TextField
           fullWidth
           label="Enter natural language query"

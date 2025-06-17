@@ -30,9 +30,10 @@ app.add_middleware(
 load_api_key()
 class QueryRequest(BaseModel):
     query: str
+    history: list[dict] = [] # [{'user': '...', 'bot': '...'}, ...]
 
 @app.post("/api/query")
 async def query_api(request: QueryRequest):
-    return handle_query(request.query)
+    return handle_query(request.query, history=request.history)
 
 

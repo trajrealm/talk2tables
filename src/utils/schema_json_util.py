@@ -40,7 +40,7 @@ def load_schema() -> tuple:
         if file.endswith(".json"):
             json_path = file
             schema = load_schema_json(f"""{SCHEMA_JSON_DIR}/{json_path}""")
-            schema_text = flatten_table(schema)
+            schema_text = flatten_schema(schema) # TODO: Use flatten_table for each table with metadata is better option
             break
             ## TODO : handle multiple json files
     return schema, schema_text

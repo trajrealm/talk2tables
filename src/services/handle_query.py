@@ -20,6 +20,13 @@ def _is_date_string(value: str) -> bool:
     except Exception:
         return False
 
+def build_prompt_with_history(history: list[dict], latest_query: str) -> str:
+    prompt = ""
+    for turn in history:
+        prompt += f"User: {turn.get('user', '')}\Bot: {turn.get('Bot', '')}\n"
+    prompt += f"User: {latest_query}\Bot:"
+    return prompt
+
 
 def get_llm_generated_query(message: str) -> dict:
     if MOCK_MODE:
@@ -41,7 +48,7 @@ def check_for_ambiguity(message: str, schema_text: str) -> str | None:
     ambiguity = check_ambiguity(message, schema_text)
     if ambiguity.get("ambiguous"):
         clarify_items = ambiguity.get("clarify", [])
-        clarification_msg = "⚠️ Ambiguity detected in your question:\n"
+        clarification_msg = "🧙 Ambiguity detected in your question:\n"
         for item in clarify_items:
             if isinstance(item, dict):
                 for term, matches in item.items():
@@ -53,7 +60,7 @@ def check_for_ambiguity(message: str, schema_text: str) -> str | None:
     return None
 
 
-def handle_query(nl_query: str):    
+def handle_query(nl_query: str, history: list[dict]):    
     try:
         schema, schema_text = load_schema()
 
@@ -67,10 +74,16 @@ def handle_query(nl_query: str):
                 }    
 
         try:
-            parsed = get_llm_generated_query(nl_query)
+            if history:
+                print("I am here")
+                prompt = build_prompt_with_history(history, nl_query)
+            else:
+                print("I amthere")
+                prompt = nl_query
+            parsed = get_llm_generated_query(prompt)
         except Exception as e:
             traceback.print_exc()
-            return f"⚠️ Failed to parse assistant response: {e}", None
+            return f"🧙 Failed to parse assistant response: {e}", None
     
         clean_sql = strip_sql_markdown(parsed.get("sql", ""))
         print("clean sql:", clean_sql)  
@@ -99,6 +112,7 @@ def handle_query(nl_query: str):
         }        
 
     except Exception as e:
+        traceback.print_exc()
         return {
             "sql": "",
             "result": [],
