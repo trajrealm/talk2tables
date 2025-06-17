@@ -7,6 +7,19 @@ def load_schema_json(path: str):
     with open(path, "r") as f:
         return json.load(f)
 
+
+def flatten_table(table: dict) -> str:
+    lines = [f"Table: {table['name']}"]
+    for col in table.get("columns", []):
+        line = f"- {col['name']} ({col['type']})"
+        if col.get("is_primary"):
+            line += " [PK]"
+        if col.get("is_foreign"):
+            line += f" [FK -> {col.get('references')}]"
+        lines.append(line)
+    return "\n".join(lines)
+    
+
 def flatten_schema(schema: dict) -> str:
     text = f"Schema: {schema.get('schema', '')}\n\n"
     for table in schema.get("tables", []):
@@ -27,7 +40,7 @@ def load_schema() -> tuple:
         if file.endswith(".json"):
             json_path = file
             schema = load_schema_json(f"""{SCHEMA_JSON_DIR}/{json_path}""")
-            schema_text = flatten_schema(schema)
+            schema_text = flatten_table(schema)
             break
             ## TODO : handle multiple json files
     return schema, schema_text

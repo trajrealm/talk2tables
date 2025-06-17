@@ -5,7 +5,9 @@ from langchain_openai import ChatOpenAI
 
 def get_qa_chain(vectorstore, model_name="gpt-4o-mini"):
     prompt_template = """
-    You are a SQL assistant that generates SQL and identifiers if the user wants to visaulize the results based on the user's question and the schema below.
+    You are a SQL assistant that generates SQL and identifiers if the user wants to visaulize the results based on the user's query and the schema below. 
+    Use the exact table name if specified in the user's question, and the exact column name if specified in the user's query unless ambiguity exists, without substituting or 
+    assuming a different table, even if similar table names exist in the schema.
 
     You can also answer metadata questions about the schema itself using standard SQL patterns, such as:
     - Listing tables: SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';

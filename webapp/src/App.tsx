@@ -22,7 +22,6 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import ReactMarkdown from 'react-markdown';
-
 interface QueryResponse {
   sql: string;
   result: {
@@ -45,6 +44,8 @@ const App = () => {
   const [ambiguity, setAmbiguity] = useState('');
   const [plot, setPlot] = useState(false);
   const [ambiguity_msg, setAmbiguityMsg] = useState('');
+  const [showAllRows, setShowAllRows] = useState(false);
+
 
   const handleSubmit = async () => {
     if (!query.trim()) {
@@ -60,9 +61,11 @@ const App = () => {
     setAmbiguity('');
     setPlot(false);
     setAmbiguityMsg('');
+    setShowAllRows(false);
+
 
     try {
-      const res = await fetch('http://localhost:7861/api/query', {
+      const res = await fetch('http://localhost:8000/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
@@ -117,11 +120,16 @@ const App = () => {
 
   return (
     <>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6">Talkt to Tables</Typography>
-        </Toolbar>
-      </AppBar>
+<AppBar position="static" sx={{ backgroundColor: '' }}>
+<Toolbar>
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <img src="/logo.svg" alt="Table Converse Logo" style={{ height: '40px', marginRight: '10px' }} />
+      <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.5rem', color: '#fff' }}>
+        {/* Table Converse */}
+      </Typography>
+    </Box>
+  </Toolbar>
+ </AppBar>
 
       <Container sx={{ mt: 4, mb: 4 }}>
         <TextField
@@ -200,7 +208,7 @@ const App = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {rows.map((row, i) => (
+                  {(showAllRows ? rows : rows.slice(0, 8)).map((row, i) => (
                     <TableRow key={i}>
                       {row.map((cell, j) => (
                         <TableCell key={j}>{cell?.toString() ?? ''}</TableCell>
@@ -210,6 +218,14 @@ const App = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+
+            {rows.length > 8 && (
+              <Box mt={1} textAlign="center">
+                <Button onClick={() => setShowAllRows(!showAllRows)}>
+                  {showAllRows ? 'Show Less ▲' : 'Show More ▼'}
+                </Button>
+              </Box>
+            )}
           </Box>
         )}
 
