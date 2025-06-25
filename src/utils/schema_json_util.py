@@ -45,3 +45,32 @@ def load_schema() -> tuple:
             ## TODO : handle multiple json files
     return schema, schema_text
 
+
+from uuid import UUID
+from sqlalchemy.orm import Session
+from src.data_access.database import get_db
+from src.data_access.models import UserDatabase, UserDbSchema
+from fastapi import HTTPException, Depends
+
+
+
+def load_schema_from_db(user_id: UUID, db_id: UUID, db:Session) -> tuple:
+    user_db = db.query(UserDatabase).filter(
+        UserDatabase.id == db_id,
+        UserDatabase.user_id == user_id
+    ).first()
+
+    if not user_db:
+        raise HTTPException(status_code=404, detail="Database not found for user.")
+
+    # Fetch schema
+    schema_entry = db.query(UserDbSchema).filter(
+        UserDbSchema.user_database_id == db_id
+    ).first()# optional: latest schema version
+
+    if not schema_entry:
+        raise HTTPException(status_code=404, detail="Schema not found for this database.")
+
+    schema_text = flatten_schema(schema_entry.schema_json_info)
+
+    return schema_entry, schema_text

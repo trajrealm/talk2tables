@@ -19,3 +19,8 @@ langchain-openai
 sqlparse
 gradio
 plotly
+alembic
+passlib[bcrypt]
+pytest
+email-validator
+python-jose[cryptography]

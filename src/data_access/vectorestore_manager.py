@@ -6,10 +6,13 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.schema import Document
 from src.utils.schema_json_util import load_schema_json, flatten_table
 
+from sqlalchemy.orm import Session
+from src.data_access.models import User, UserDatabase, UserDbSchema
+
 from config.config import SCHEMA_JSON_DIR
 import json
 import os
-
+import shutil
 
 def add_info_schema(vectordb):
     info_schema_doc = Document(
@@ -73,3 +76,50 @@ def create_vectorstore_from_text(text: str, persist_dir: str = VECTORSTORE_DIR):
     vectordb = Chroma.from_documents(docs, embeddings, persist_directory=persist_dir)
     vectordb = add_info_schema(vectordb)
     return vectordb
+
+
+def create_vectorstore_for_user_db(user_id: str, db_id: str, db: Session):
+    docs = []
+
+    # Query only schemas for this user and database
+    schemas = (
+        db.query(UserDbSchema)
+        .filter(
+            UserDbSchema.user_database_id == db_id
+        )
+        .all()
+    )
+
+    for schema_obj in schemas:
+        schema = schema_obj.schema_json_info
+        schema_name = schema_obj.schema_name
+
+        for table in schema.get("tables", []):
+            table_name = table.get("name", "unknown_table")
+            text = flatten_table(table)
+
+            docs.append(Document(
+                page_content=text,
+                metadata={
+                    "db_id": db_id,
+                    "schema_name": schema_name,
+                    "table_name": table_name,
+                }
+            ))
+
+    docs += add_info_schema_docs()
+
+    embeddings = OpenAIEmbeddings()
+    user_vectorstore_dir = os.path.join(VECTORSTORE_DIR, str(user_id), str(db_id))
+
+    # Optional: clear previous vectorstore before rebuilding
+    if os.path.exists(user_vectorstore_dir):
+        shutil.rmtree(user_vectorstore_dir)
+
+    vectorstore = Chroma.from_documents(
+        documents=docs,
+        embedding=embeddings,
+        persist_directory=user_vectorstore_dir,
+    )
+    vectorstore.persist()
+    return vectorstore

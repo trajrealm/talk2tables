@@ -5,8 +5,9 @@ import json
 
 DEFAULT_SCHEMA_NAME = "public"
 
-def get_schema_json(schema_name=DEFAULT_SCHEMA_NAME):
-    conn = psycopg2.connect(**cfg.DB_CONN_PARAMS)
+def get_schema_json(conn_params=cfg.DB_CONN_PARAMS, schema_name=DEFAULT_SCHEMA_NAME):
+    print("Extracting schema...", conn_params, schema_name)
+    conn = psycopg2.connect(**conn_params)
     cur = conn.cursor()
 
     # Get table and column info
@@ -82,8 +83,18 @@ def get_schema_json(schema_name=DEFAULT_SCHEMA_NAME):
 
 
 if __name__ == "__main__":
-    schema = get_schema_json()
-    json_path = f"{cfg.SCHEMA_JSON_DIR}/{DEFAULT_SCHEMA_NAME}_schema.json"
-    with open(f'{DEFAULT_SCHEMA_NAME}_schema.json', "w") as f:
-        json.dump(schema, f, indent=2)
-    print(f'{DEFAULT_SCHEMA_NAME}_schema.json')
+    conn_params = {
+    "dbname": "extractalpha_dev",
+    "user": "",
+    "password": "",
+    "host": "localhost",
+    "port": 5432
+        }
+    schema_name = "public"
+    schema = get_schema_json(conn_params, schema_name)
+    print(schema)
+
+    # json_path = f"{cfg.SCHEMA_JSON_DIR}/{DEFAULT_SCHEMA_NAME}_schema.json"
+    # with open(f'{DEFAULT_SCHEMA_NAME}_schema.json', "w") as f:
+    #     json.dump(schema, f, indent=2)
+    # print(f'{DEFAULT_SCHEMA_NAME}_schema.json')

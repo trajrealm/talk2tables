@@ -2,9 +2,15 @@
 from src.data_access.db_executor import execute_sql
 from src.services.llm_ambiguity_checker import check_ambiguity
 from src.services.retriever_chain import get_qa_chain
-from src.utils.schema_json_util import load_schema
+from src.utils.schema_json_util import load_schema, load_schema_from_db
 from src.utils.md_utils import strip_sql_markdown
 from src.data_access.vectorstore_singleton import get_vectorstore
+from pathlib import Path
+from langchain.vectorstores import Chroma
+from langchain.embeddings import OpenAIEmbeddings
+from uuid import UUID
+from sqlalchemy.orm import Session
+
 
 from dateutil.parser import parse
 
@@ -12,6 +18,8 @@ import json
 import traceback
 
 MOCK_MODE = False
+
+VECTORSTORE_DIR='./chroma_db'
 
 def _is_date_string(value: str) -> bool:
     try:
@@ -28,7 +36,7 @@ def build_prompt_with_history(history: list[dict], latest_query: str) -> str:
     return prompt
 
 
-def get_llm_generated_query(message: str) -> dict:
+def get_llm_generated_query_1(message: str) -> dict:
     if MOCK_MODE:
         return {
             "sql": "SELECT date, cam1 FROM cam1_history WHERE ticker = 'AAPL' LIMIT 10",
@@ -38,6 +46,30 @@ def get_llm_generated_query(message: str) -> dict:
             "chart_type": "line"
         }
     vectorstore = get_vectorstore()
+    chain = get_qa_chain(vectorstore)
+    result = chain.invoke({"query": message})
+    print("LLM result:\n", result["result"])
+    return json.loads(result["result"])
+
+from src.data_access.vectorestore_manager import create_vectorstore_for_user_db
+from src.data_access.vectorstore_singleton import set_vectorstore
+
+def get_llm_generated_query(message: str, user_id: UUID, db_id: UUID, db:Session) -> dict:
+    if MOCK_MODE:
+        return {
+            "sql": "SELECT date, cam1 FROM cam1_history WHERE ticker = 'AAPL' LIMIT 10",
+            "plot": False,
+            "x_axis": "date",
+            "y_axis": "cam1",
+            "chart_type": "line"
+        }
+    
+    vectorstore = get_vectorstore(user_id, db_id)
+    if not vectorstore:
+        vectorstore = create_vectorstore_for_user_db(user_id, db_id, db)
+        set_vectorstore(user_id, db_id, vectorstore)
+        # raise ValueError(f"Vectorstore not found for user {user_id} and db {db_id}")
+    
     chain = get_qa_chain(vectorstore)
     result = chain.invoke({"query": message})
     print("LLM result:\n", result["result"])
@@ -60,7 +92,67 @@ def check_for_ambiguity(message: str, schema_text: str) -> str | None:
     return None
 
 
-def handle_query(nl_query: str, history: list[dict]):    
+def handle_query(nl_query: str, history: list[dict], db_id: UUID, user_id: UUID, db:Session):    
+    try:
+        schema, schema_text = load_schema_from_db(user_id, db_id, db)
+
+        # Step 1: Check for ambiguityi
+        if not MOCK_MODE:
+            ambiguity_msg = check_for_ambiguity(nl_query, schema_text)
+            if ambiguity_msg:
+                return {
+                    "ambiguity": True,
+                    "ambiguity_msg": ambiguity_msg,
+                }    
+        try:
+            if history:
+                print("I am here")
+                prompt = build_prompt_with_history(history, nl_query)
+            else:
+                print("I amthere")
+                prompt = nl_query
+            parsed = get_llm_generated_query(prompt, str(user_id), str(db_id), db)
+        except Exception as e:
+            traceback.print_exc()
+            return f"🧙 Failed to parse assistant response: {e}", None
+    
+        clean_sql = strip_sql_markdown(parsed.get("sql", ""))
+        print("clean sql:", clean_sql)  
+        columns, rows = execute_sql(clean_sql)
+
+        # return {"result": {"rows": rows, "columns": columns}}
+        column_types = []
+        for col_index in range(len(columns)):
+            sample_value = next((row[col_index] for row in rows if row[col_index] is not None), None)
+            if isinstance(sample_value, (int, float)):
+                column_types.append("number")
+            elif isinstance(sample_value, str) and _is_date_string(sample_value):
+                column_types.append("date")
+            else:
+                column_types.append("string")
+
+        return {
+            "sql": clean_sql,
+            "ambiguity": False,
+            "result": {
+                "columns": columns,
+                "rows": rows,
+                "types": column_types,
+                "plot": parsed.get("plot", False)
+            }
+        }        
+
+    except Exception as e:
+        traceback.print_exc()
+        return {
+            "sql": "",
+            "result": [],
+            "ambiguity": None,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
+def handle_query_old(nl_query: str, history: list[dict]):    
     try:
         schema, schema_text = load_schema()
 
@@ -120,3 +212,4 @@ def handle_query(nl_query: str, history: list[dict]):
             "error": str(e),
             "traceback": traceback.format_exc()
         }
+
