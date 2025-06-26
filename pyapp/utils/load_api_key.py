@@ -1,12 +1,7 @@
-from dotenv import load_dotenv
-import os
+from src.config.settings import settings
 
 def load_api_key():
-    load_dotenv(override=True)
-
-    api_key = os.getenv('OPENAI_API_KEY')
-
-    MODEL = "gpt-4o-mini"
+    api_key = settings.OPENAI_API_KEY
     # Check the key
     if not api_key:
         print("No API key was found - please head over to the troubleshooting notebook in this folder to identify & fix!")

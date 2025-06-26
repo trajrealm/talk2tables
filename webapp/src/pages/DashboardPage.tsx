@@ -1,34 +1,25 @@
-// webapp/src/pages/DashboardPage.tsx
-
 import React, { useState, useEffect } from "react";
 import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  IconButton,
-  Menu,
-  MenuItem,
-  Avatar,
   Container,
   Box,
+  Typography,
   Paper,
-  Divider,
-  Link as MuiLink,
   TextField,
+  Button,
   Alert,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-
-const BACKEND_URL = "http://localhost:8000";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import { BACKEND_URL } from "../utils/constants";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const userEmail = localStorage.getItem("user_email") || "User";
+
   const [connectedDatabases, setConnectedDatabases] = useState<any[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  
+
   const [dbForm, setDbForm] = useState({
     name: "",
     host: "",
@@ -40,16 +31,6 @@ export default function DashboardPage() {
     type: "PostgreSQL",
   });
 
-  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => setAnchorEl(null);
-
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    navigate("/auth");
-  };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -59,6 +40,8 @@ export default function DashboardPage() {
 
   const handleDbSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSuccessMessage(null);
+
     try {
       const token = localStorage.getItem("access_token");
       const res = await fetch(`${BACKEND_URL}/connect_database`, {
@@ -69,28 +52,28 @@ export default function DashboardPage() {
         },
         body: JSON.stringify(dbForm),
       });
+
       const data = await res.json();
 
       if (!res.ok) {
         console.error("Error:", data);
-        setSuccessMessage("");
-      } else {
-        setSuccessMessage("Database connected and schema extracted successfully!");
-        setDbForm({
-          name: "",
-          host: "",
-          port: 5432,
-          username: "",
-          password: "",
-          database: "",
-          schema: "",
-          type: "PostgreSQL",
-        });
-        fetchDatabases(); // Refresh list
+        return;
       }
+
+      setSuccessMessage("Database connected and schema extracted successfully!");
+      setDbForm({
+        name: "",
+        host: "",
+        port: 5432,
+        username: "",
+        password: "",
+        database: "",
+        schema: "",
+        type: "PostgreSQL",
+      });
+      fetchDatabases();
     } catch (err) {
       console.error("Network error:", err);
-      setSuccessMessage("");
     }
   };
 
@@ -115,37 +98,8 @@ export default function DashboardPage() {
 
   return (
     <>
-      {/* Header */}
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            <img src="/logo.svg" alt="Logo" height="32" />
-          </Typography>
-          <Button color="inherit">Home</Button>
-          <Button color="inherit">About</Button>
-          <Button color="inherit">Contact</Button>
-          <IconButton
-            size="large"
-            edge="end"
-            color="inherit"
-            onClick={handleMenu}
-            sx={{ ml: 2 }}
-          >
-            <Avatar alt="User" src="/profile.png" />
-          </IconButton>
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-            <MenuItem onClick={handleClose}>My Profile</MenuItem>
-            <MenuItem onClick={handleLogout}>Logout</MenuItem>
-            <MenuItem disabled>
-              <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
-                {userEmail}
-              </Typography>
-            </MenuItem>
-          </Menu>
-        </Toolbar>
-      </AppBar>
+      <Header userEmail={userEmail} />
 
-      {/* Dashboard */}
       <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }}>
         <Typography variant="h4" gutterBottom>
           Welcome to Your Dashboard
@@ -172,7 +126,7 @@ export default function DashboardPage() {
                   <TextField
                     key={field}
                     fullWidth
-                    label={field === "schema" ? "Schema (optional)" : field[0].toUpperCase() + field.slice(1)}
+                    label={field === "schema" ? "Schema *" : field[0].toUpperCase() + field.slice(1)}
                     name={field}
                     type={field === "password" ? "password" : field === "port" ? "number" : "text"}
                     value={dbForm[field as keyof typeof dbForm]}
@@ -198,10 +152,10 @@ export default function DashboardPage() {
             </Paper>
           </Box>
 
-          {/* Connected DBs */}
+          {/* Connected Databases */}
           <Box flex={1}>
             <Typography variant="h6" gutterBottom>
-              Your Connected Databases
+              Your Databases
             </Typography>
             {connectedDatabases.length === 0 ? (
               <Typography variant="body2" color="text.secondary">
@@ -218,7 +172,11 @@ export default function DashboardPage() {
                       </Typography>
                     </Box>
                     <Box textAlign="right">
-                      <Button size="small" variant="outlined" onClick={() => navigate(`/converse/${db.id}`)}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => navigate(`/converse/${db.id}`)}
+                      >
                         Converse
                       </Button>
                     </Box>
@@ -230,36 +188,7 @@ export default function DashboardPage() {
         </Box>
       </Container>
 
-      {/* Footer */}
-      <Box
-        component="footer"
-        sx={{
-          py: 3,
-          px: 2,
-          mt: "auto",
-          backgroundColor: (theme) => theme.palette.grey[200],
-        }}
-      >
-        <Container maxWidth="md">
-          <Divider sx={{ mb: 2 }} />
-          <Box display="flex" justifyContent="space-between" flexWrap="wrap">
-            <Typography variant="body2" color="text.secondary">
-              © {new Date().getFullYear()} Table Converse. All rights reserved.
-            </Typography>
-            <Box>
-              <MuiLink href="#" underline="hover" sx={{ ml: 2 }}>
-                Privacy
-              </MuiLink>
-              <MuiLink href="#" underline="hover" sx={{ ml: 2 }}>
-                Terms
-              </MuiLink>
-              <MuiLink href="#" underline="hover" sx={{ ml: 2 }}>
-                Support
-              </MuiLink>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
+      <Footer />
     </>
   );
 }

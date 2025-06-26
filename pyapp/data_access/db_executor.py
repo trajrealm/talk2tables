@@ -1,7 +1,7 @@
 import psycopg2
-from config.config import DB_CONN_PARAMS
+# from config.config import DB_CONN_PARAMS
 
-def execute_sql(sql: str):
+def execute_sql(sql: str, DB_CONN_PARAMS: dict):
     try:
         conn = psycopg2.connect(**DB_CONN_PARAMS)
         cur = conn.cursor()
