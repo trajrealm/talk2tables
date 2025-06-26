@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from src.utils.load_api_key import load_api_key
-from src.config.settings import settings
+from pyapp.utils.load_api_key import load_api_key
+from pyapp.config.settings import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

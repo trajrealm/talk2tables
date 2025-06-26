@@ -3,9 +3,9 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from uuid import UUID
 
-from src.data_access.database import get_db
-from src.services.handle_query import handle_query
-from src.api.auth import get_current_user
+from pyapp.data_access.database import get_db
+from pyapp.services.handle_query import handle_query
+from pyapp.api.auth import get_current_user
 
 router = APIRouter()
 

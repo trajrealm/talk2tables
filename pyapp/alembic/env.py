@@ -5,7 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from src.data_access.database import Base
+from pyapp.data_access.database import Base
 import src.data_access.models
 import os
 

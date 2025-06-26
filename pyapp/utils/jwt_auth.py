@@ -2,7 +2,7 @@ import os
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-from src.config.settings import settings
+from pyapp.config.settings import settings
 
 SECRET_KEY = settings.JWT_SECRET_KEY
 ALGORITHM = "HS256"

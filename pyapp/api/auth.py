@@ -3,10 +3,10 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from uuid import uuid4, UUID
 
-from src.data_access.models import User
-from src.utils.auth import hash_password, verify_password
-from src.utils.jwt_auth import create_access_token, decode_access_token
-from src.data_access.database import get_db
+from pyapp.data_access.models import User
+from pyapp.utils.auth import hash_password, verify_password
+from pyapp.utils.jwt_auth import create_access_token, decode_access_token
+from pyapp.data_access.database import get_db
 from fastapi.security import OAuth2PasswordBearer
 
 router = APIRouter()

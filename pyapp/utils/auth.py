@@ -1,7 +1,7 @@
 import os
 from passlib.context import CryptContext
 from cryptography.fernet import Fernet, InvalidToken
-from src.config.settings import settings
+from pyapp.config.settings import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from src.core.app import create_app
-from src.api import auth, query, databases
+from pyapp.core.app import create_app
+from pyapp.api import auth, query, databases
 
 app = create_app()
 

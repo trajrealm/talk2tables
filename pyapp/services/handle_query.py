@@ -5,15 +5,15 @@ from dateutil.parser import parse
 
 from sqlalchemy.orm import Session
 
-from src.data_access.db_executor import execute_sql
-from src.data_access.vectorstore_singleton import get_or_create_vectorstore
-from src.services.llm_ambiguity_checker import check_ambiguity
-from src.services.retriever_chain import get_qa_chain
-from src.utils.schema_json_util import load_schema_from_db
-from src.utils.md_utils import strip_sql_markdown
-from src.config.settings import settings
-from src.data_access.models import UserDatabase, UserDbSchema
-from src.utils.auth import decrypt_value
+from pyapp.data_access.db_executor import execute_sql
+from pyapp.data_access.vectorstore_singleton import get_or_create_vectorstore
+from pyapp.services.llm_ambiguity_checker import check_ambiguity
+from pyapp.services.retriever_chain import get_qa_chain
+from pyapp.utils.schema_json_util import load_schema_from_db
+from pyapp.utils.md_utils import strip_sql_markdown
+from pyapp.config.settings import settings
+from pyapp.data_access.models import UserDatabase, UserDbSchema
+from pyapp.utils.auth import decrypt_value
 
 
 

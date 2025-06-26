@@ -1,8 +1,8 @@
 from typing import Dict, Tuple, Optional
 from uuid import UUID
-from src.data_access.vectorestore_manager import cli_run_create_vectorstore_for_user_db
+from pyapp.data_access.vectorestore_manager import cli_run_create_vectorstore_for_user_db
 from sqlalchemy.orm import Session
-from src.config.settings import settings
+from pyapp.config.settings import settings
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import OpenAIEmbeddings
 import os

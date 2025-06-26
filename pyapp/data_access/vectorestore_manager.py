@@ -5,10 +5,10 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.schema import Document
 
 from sqlalchemy.orm import Session
-from src.data_access.models import UserDbSchema
-from src.data_access.database import get_db
-from src.utils.schema_json_util import load_schema_json, flatten_table
-from src.config.settings import settings
+from pyapp.data_access.models import UserDbSchema
+from pyapp.data_access.database import get_db
+from pyapp.utils.schema_json_util import load_schema_json, flatten_table
+from pyapp.config.settings import settings
 
 import os
 import subprocess
@@ -175,8 +175,8 @@ def cli_run_create_vectorstore_for_user_db(user_id: str, db_id: str) -> None:
             (
                 "import sys, os;"
                 "sys.path.insert(0, os.path.abspath('..'))  # add parent of current directory;"
-                "from src.data_access.vectorstore_manager import create_vectorstore_for_user_db;"
-                "from src.data_access.database import get_db;"
+                "from pyapp.data_access.vectorstore_manager import create_vectorstore_for_user_db;"
+                "from pyapp.data_access.database import get_db;"
                 "db = next(get_db());"
                 f"create_vectorstore_for_user_db(user_id='{user_id}', db_id='{db_id}', db=db);"
                 "db.close()"

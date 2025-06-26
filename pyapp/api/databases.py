@@ -3,13 +3,13 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from uuid import UUID, uuid4
 
-from src.data_access.models import UserDatabase, UserDbSchema
-from src.data_access.database import get_db
-from src.utils.auth import encrypt_value, decrypt_value
-from src.utils.jwt_auth import decode_access_token
-from src.data_access.schema_extractor import get_schema_json
-from src.data_access.vectorestore_manager import create_vectorstore_for_user_db
-from src.api.auth import get_current_user
+from pyapp.data_access.models import UserDatabase, UserDbSchema
+from pyapp.data_access.database import get_db
+from pyapp.utils.auth import encrypt_value, decrypt_value
+from pyapp.utils.jwt_auth import decode_access_token
+from pyapp.data_access.schema_extractor import get_schema_json
+from pyapp.data_access.vectorestore_manager import create_vectorstore_for_user_db
+from pyapp.api.auth import get_current_user
 
 
 router = APIRouter()

@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from src.config.settings import settings
+from pyapp.config.settings import settings
 
 # Create engine using environment variable
 engine = create_engine(settings.DATABASE_URL)

@@ -5,8 +5,8 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from src.config.settings import settings
-from src.data_access.models import UserDatabase, UserDbSchema
+from pyapp.config.settings import settings
+from pyapp.data_access.models import UserDatabase, UserDbSchema
 
 
 def load_schema_json(path: str) -> dict:

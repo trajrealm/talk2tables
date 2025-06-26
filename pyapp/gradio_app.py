@@ -1,12 +1,12 @@
 
-from src.utils.schema_json_util import load_schema_json, flatten_schema
-from src.data_access.vectorestore_manager import create_vectorstore_from_text
-from src.services.retriever_chain import get_qa_chain
-from src.utils.load_api_key import load_api_key
-from src.data_access.db_executor import execute_sql
-from src.services.llm_ambiguity_checker import check_ambiguity
-from src.utils.schema_json_util import flatten_schema
-from src.utils.visualizer import plot_with_plotly
+from pyapp.utils.schema_json_util import load_schema_json, flatten_schema
+from pyapp.data_access.vectorestore_manager import create_vectorstore_from_text
+from pyapp.services.retriever_chain import get_qa_chain
+from pyapp.utils.load_api_key import load_api_key
+from pyapp.data_access.db_executor import execute_sql
+from pyapp.services.llm_ambiguity_checker import check_ambiguity
+from pyapp.utils.schema_json_util import flatten_schema
+from pyapp.utils.visualizer import plot_with_plotly
 
 import gradio as gr
 import re

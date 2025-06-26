@@ -1,4 +1,4 @@
-from src.config.settings import settings
+from pyapp.config.settings import settings
 
 def load_api_key():
     api_key = settings.OPENAI_API_KEY
